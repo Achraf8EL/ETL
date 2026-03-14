@@ -1,0 +1,9 @@
+{
+  "route": "petroleum/pri/allmg",
+  "frequency": "monthly",
+  "total_expected": 1772083,
+  "total_written": 1140000,
+  "next_offset": 1140000,
+  "next_file_index": 115,
+  "updated_at": "2026-01-25T21:26:12Z"
+}

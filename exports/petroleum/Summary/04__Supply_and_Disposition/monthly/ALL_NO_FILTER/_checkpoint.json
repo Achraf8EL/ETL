@@ -1,0 +1,10 @@
+{
+  "route": "petroleum/sum/snd",
+  "frequency": "monthly",
+  "total_expected": 1500249,
+  "total_written": 1500249,
+  "next_offset": 1505000,
+  "next_file_index": 151,
+  "updated_at": "2026-01-25T19:44:44Z",
+  "finished": true
+}

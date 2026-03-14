@@ -1,0 +1,51 @@
+[
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/cons",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/ConsumptionSales",
+    "id": "cons",
+    "name": "Consumption/Sales",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/crd",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/Crude_Reserves_and_Production",
+    "id": "crd",
+    "name": "Crude Reserves and Production",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/move",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/ImportsExports_and_Movements",
+    "id": "move",
+    "name": "Imports/Exports and Movements",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/pnp",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/Refining_and_Processing",
+    "id": "pnp",
+    "name": "Refining and Processing",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/pri",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/Prices",
+    "id": "pri",
+    "name": "Prices",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/stoc",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/Stocks",
+    "id": "stoc",
+    "name": "Stocks",
+    "description": null
+  },
+  {
+    "from": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/sum",
+    "to": "/Users/achrafelmessaoudi/Desktop/ETL/exports/petroleum/Summary",
+    "id": "sum",
+    "name": "Summary",
+    "description": null
+  }
+]

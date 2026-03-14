@@ -1,0 +1,10 @@
+{
+  "route": "petroleum/cons/refmg",
+  "frequency": "monthly",
+  "total_expected": 911327,
+  "total_written": 911327,
+  "next_offset": 915000,
+  "next_file_index": 92,
+  "updated_at": "2026-01-25T17:43:27Z",
+  "finished": true
+}

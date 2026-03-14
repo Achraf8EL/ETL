@@ -1,0 +1,10 @@
+{
+  "route": "petroleum/pri/allmg",
+  "frequency": "monthly",
+  "total_expected": null,
+  "total_written": 1140000,
+  "next_offset": 1140000,
+  "next_file_index": 115,
+  "updated_at": "2026-02-24T20:53:09Z",
+  "error": "503: <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>503 Service Unavailable</title>\n</head><body>\n<h1>Service Unavailable</h1>\n<p>The server is temporarily unable to service your\nrequest due to maintenance downtime or capacity\nproblems. Please try again later.</p>\n</body></html>\n"
+}

@@ -1,0 +1,10 @@
+{
+  "route": "petroleum/move/impcp",
+  "frequency": "monthly",
+  "total_expected": 929016,
+  "total_written": 929016,
+  "next_offset": 930000,
+  "next_file_index": 93,
+  "updated_at": "2026-01-25T16:55:30Z",
+  "finished": true
+}
