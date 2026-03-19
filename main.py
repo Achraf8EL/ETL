@@ -23,7 +23,7 @@ load_dotenv()
 
 EIA_API_KEY = os.getenv("EIA_API_KEY")
 if not EIA_API_KEY:
-    raise RuntimeError("EIA_API_KEY manquante. Ajoute-la dans un fichier .env (EIA_API_KEY=...)")
+    raise RuntimeError("EIA_API_KEY manquante. Ajoutez-la dans un fichier .env (EIA_API_KEY=...)")
 
 EIA_BASE = "https://api.eia.gov/v2"
 
@@ -35,58 +35,84 @@ app = FastAPI(title="EIA Exporter", version="9.2.0")
 _METADATA_CACHE: Dict[str, dict] = {}
 _CHILDREN_MAP_CACHE: Dict[str, Dict[str, str]] = {}
 
+"""
+    Normalise les noms des fichiers et limite leur nombre de caractères à 180.
+"""
 def safe_filename(s: str) -> str:
     s = str(s).replace("/", "_")
     s = re.sub(r"[^A-Za-z0-9._-]+", "_", s)
     return s[:180]
 
+"""
+    Normalise les noms de dossiers et les limite à 140 caractères.
+"""
 def slugify_folder(s: str) -> str:
     s = (s or "").strip()
     s = s.replace("&", "and")
-    s = re.sub(r"[^\w\s.-]+", "", s)   
-    s = re.sub(r"\s+", "_", s)        
+    s = re.sub(r"[^\w\s.-]+", "", s)
+    s = re.sub(r"\s+", "_", s)
     return s[:140] if s else "UNKNOWN"
 
+"""
+    Permet de forcément renvoyer une valeur valide ou nulle afin de faciliter les traitements en aval.
+"""
 def parse_int(x) -> Optional[int]:
     try:
         return int(x)
     except Exception:
         return None
 
+"""
+    Retourne l'heure actuelle au format ISO.
+"""
 def now_iso() -> str:
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
+"""
+    Convertit une liste de dictionnaires en bytes au format CSV.
+"""
 def to_csv_bytes(rows: List[Dict]) -> bytes:
     df = pd.DataFrame(rows)
     buff = io.StringIO()
     df.to_csv(buff, index=False)
     return buff.getvalue().encode("utf-8")
 
+"""
+    Génère un fichier CSV à l'endroit voulu
+"""
 def write_csv(path: Path, rows: List[Dict]) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(to_csv_bytes(rows))
     return len(rows)
 
-def count_csv_rows_fast(path: Path) -> int:
-    """
+"""
     Compte rapidement les lignes d'un CSV (sans charger en mémoire).
     On retire 1 pour l'en-tête.
-    """
+"""
+def count_csv_rows_fast(path: Path) -> int:
     n = 0
     with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             n += chunk.count(b"\n")
     return max(0, n - 1)
 
+"""
+    Transforme n'importe quelle chaîne de caractères en liste de chaînes de caractères.
+"""
 def parse_csv_list(s: Optional[str]) -> List[str]:
     if not s:
         return []
     return [x.strip() for x in s.split(",") if x.strip()]
 
-
+"""
+    Génère le chemin du checkpoint pour un export donné.
+"""
 def checkpoint_path(out_dir: Path) -> Path:
     return out_dir / "_checkpoint.json"
 
+"""
+    Génère  checkpoint d'un export afin d'obtenir ses informations
+"""
 def write_checkpoint(out_dir: Path, payload: dict) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     p = checkpoint_path(out_dir)
@@ -94,6 +120,9 @@ def write_checkpoint(out_dir: Path, payload: dict) -> None:
     tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(p)
 
+"""
+    Lit les informations d'un export
+"""
 def read_checkpoint(out_dir: Path) -> Optional[dict]:
     p = checkpoint_path(out_dir)
     if not p.exists():
@@ -103,15 +132,17 @@ def read_checkpoint(out_dir: Path) -> Optional[dict]:
     except Exception:
         return None
 
-
+"""
+    Normalise les noms de fichiers avec la fréquence
+"""
 def _prefix_for(route: str, frequency: str) -> str:
     return f"{safe_filename(route.replace('/','_'))}_{frequency}"
 
-def _list_chunk_files(out_dir: Path, prefix: str) -> List[Path]:
-    """
+"""
     Retourne les fichiers prefix_fileXXXX.csv triés par index.
     Ignore LAST.
-    """
+"""
+def _list_chunk_files(out_dir: Path, prefix: str) -> List[Path]:
     pat = re.compile(rf"^{re.escape(prefix)}_file(\d{{4}})\.csv$")
     files = []
     if out_dir.exists():
@@ -121,6 +152,9 @@ def _list_chunk_files(out_dir: Path, prefix: str) -> List[Path]:
                 files.append((int(m.group(1)), p))
     return [p for _, p in sorted(files, key=lambda x: x[0])]
 
+"""
+    Retourne l'index du prochain fichier à créer sur disque.
+"""
 def _next_file_index_from_disk(out_dir: Path, prefix: str) -> int:
     files = _list_chunk_files(out_dir, prefix)
     if not files:
@@ -129,11 +163,11 @@ def _next_file_index_from_disk(out_dir: Path, prefix: str) -> int:
     m = re.search(r"_file(\d{4})\.csv$", last)
     return int(m.group(1)) + 1 if m else 1
 
-def _rows_written_from_disk(out_dir: Path, prefix: str) -> int:
-    """
+"""
     Compte le nombre total de lignes (sans headers) déjà écrites sur disque
     (fichiers chunk + éventuellement LAST).
-    """
+"""
+def _rows_written_from_disk(out_dir: Path, prefix: str) -> int:
     total = 0
     for p in _list_chunk_files(out_dir, prefix):
         total += count_csv_rows_fast(p)
@@ -142,10 +176,10 @@ def _rows_written_from_disk(out_dir: Path, prefix: str) -> int:
         total += count_csv_rows_fast(lastp)
     return total
 
+"""
+    Etat détaillé de où on en est.
+"""
 def export_status(out_dir: Path, prefix: str, file_size: int) -> dict:
-    """
-    Etat détaillé: où on en est.
-    """
     ck = read_checkpoint(out_dir)
     chunk_files = _list_chunk_files(out_dir, prefix)
     last_file = chunk_files[-1].name if chunk_files else None
@@ -169,7 +203,9 @@ def export_status(out_dir: Path, prefix: str, file_size: int) -> dict:
         "checkpoint": ck,
     }
 
-
+"""
+    Wrapper HTTP permettant de sécuriser les appels à l'API EIA.
+"""
 def _safe_get_json(url: str, params, timeout: int = 60, retries: int = 8) -> dict:
     headers = {
         "User-Agent": "ETL-EIA-Exporter/1.0 (+http://127.0.0.1)",
@@ -233,6 +269,7 @@ def _safe_get_json(url: str, params, timeout: int = 60, retries: int = 8) -> dic
         return payload
 
     raise HTTPException(status_code=502, detail={"message": "EIA request failed", "status": last_status, "body": last_text})
+
 
 def get_metadata(path: str) -> dict:
     path = path.strip("/")
