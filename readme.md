@@ -36,6 +36,14 @@ ou
 python3 main.py
 ```
 
+## rename_crd_dirs.py
+
+- `rename_crd_dirs.py` : Renomme les dossiers dans `exports/petroleum/crd` avec des noms lisibles et numérotés (ex: `01__Nom_Lisible`), en interrogeant l'API EIA pour les noms officiels. Nécessite `EIA_API_KEY`.
+
+- `rename_petroleum_top.py` : Renomme les dossiers principaux dans `exports/petroleum` (avec options pour mapping JSON et dry-run).
+
+- `rename_dirs.py` : Script pour renommer des routes spécifiques hardcodées dans `exports/petroleum/crd`.
+
 ## Flux de travail
 
 1. Mettre à jour `petroleum_catalog.json`

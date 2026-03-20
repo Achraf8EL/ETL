@@ -1,3 +1,14 @@
+"""
+Script pour renommer les dossiers dans exports/petroleum/crd.
+
+Ce script interroge l'API EIA pour obtenir les noms des sous-routes de 'petroleum/crd',
+puis renomme les dossiers existants en ajoutant un numéro d'ordre et un nom lisible.
+
+Prérequis :
+- Clé API EIA dans la variable d'environnement EIA_API_KEY.
+- Dossiers à renommer dans exports/petroleum/crd.
+"""
+
 import os
 import re
 import time
@@ -13,12 +24,27 @@ if not API_KEY:
 BASE = Path("exports/petroleum/crd")
 
 def slugify(s: str) -> str:
+    """
+    Transforme une chaîne en slug URL-friendly.
+
+    Remplace '&' par 'and', supprime les caractères spéciaux,
+    remplace les espaces par '_', et limite à 140 caractères.
+    """
     s = (s or "").strip().replace("&", "and")
     s = re.sub(r"[^\w\s.-]+", "", s)
     s = re.sub(r"\s+", "_", s)
     return s[:140] if s else "UNKNOWN"
 
 def safe_get_json(url: str, params: dict, retries: int = 10, timeout: int = 60) -> dict:
+    """
+    Effectue une requête GET vers l'API EIA avec gestion d'erreurs et retry.
+
+    Gère les erreurs réseau, les codes HTTP 429/5xx, et les réponses JSON invalides.
+    Utilise un backoff exponentiel pour les retries.
+
+    Returns:
+        dict: La réponse JSON de l'API.
+    """
     headers = {"User-Agent": "ETL-Rename/1.0", "Accept": "application/json"}
     base_sleep = 0.7
     last = None
@@ -52,6 +78,9 @@ def safe_get_json(url: str, params: dict, retries: int = 10, timeout: int = 60) 
     raise RuntimeError(f"EIA API failed after retries. Last response: {last}")
 
 def parent_children(parent_route: str) -> dict:
+    """
+    Récupère les enfants d'une route parent depuis l'API EIA.
+    """
     url = f"{EIA_BASE}/{parent_route.strip('/')}/"
     md = safe_get_json(url, {"api_key": API_KEY})
     routes = (md.get("response", {}) or {}).get("routes", []) or []
@@ -59,11 +88,7 @@ def parent_children(parent_route: str) -> dict:
 
 def find_existing_dir(base: Path, leaf_id: str) -> Path | None:
     """
-    Trouve le dossier réel pour leaf_id:
-    - base/leaf_id
-    - base/{leaf_id}__{leaf_id}
-    - base/{leaf_id}__*
-    """
+            """
     direct = base / leaf_id
     if direct.exists():
         return direct
@@ -79,6 +104,12 @@ def find_existing_dir(base: Path, leaf_id: str) -> Path | None:
     return None
 
 def main():
+    """
+    Fonction principale : renomme les dossiers dans BASE avec numérotation et noms lisibles.
+
+    Récupère les enfants de 'petroleum/crd', les trie, et renomme les dossiers existants
+    en format 'XX__Nom_Lisible' où XX est le numéro d'ordre.
+    """
     parent_route = "petroleum/crd"
     child_map = parent_children(parent_route)
     ordered_ids = sorted(child_map.keys())
@@ -103,4 +134,5 @@ def main():
     print("[DONE] Rename finished.")
 
 if __name__ == "__main__":
+    # Point d'entrée du script : exécute la fonction main.
     main()
