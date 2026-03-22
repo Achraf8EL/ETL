@@ -1,0 +1,137 @@
+<svg viewBox="0 0 860 580" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1117"/>
+      <stop offset="100%" stop-color="#161b27"/>
+    </linearGradient>
+    <linearGradient id="client" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="gen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a1d96"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="api" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="disk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-b" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+    </marker>
+    <marker id="arr-g" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arr-y" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#fbbf24"/>
+    </marker>
+  </defs>
+
+  <rect width="860" height="580" fill="url(#bg)" rx="12"/>
+  <rect width="860" height="580" fill="none" stroke="#1e293b" stroke-width="1" rx="12"/>
+
+  <text x="430" y="36" text-anchor="middle" fill="#94a3b8" font-size="13" letter-spacing="3">STREAMING EXPORT PIPELINE</text>
+
+  <!-- ══ COLUMNS: Client | FastAPI | Generator | EIA API | Disk ══ -->
+
+  <!-- column headers -->
+  <rect x="20"  y="55" width="110" height="32" rx="4" fill="url(#client)"/>
+  <text x="75"  y="76" text-anchor="middle" fill="#bfdbfe" font-size="10" font-weight="bold">Client (curl)</text>
+
+  <rect x="175" y="55" width="130" height="32" rx="4" fill="#1e293b" stroke="#334155"/>
+  <text x="240" y="76" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">FastAPI</text>
+
+  <rect x="345" y="55" width="175" height="32" rx="4" fill="url(#gen)"/>
+  <text x="432" y="76" text-anchor="middle" fill="#ddd6fe" font-size="10" font-weight="bold">Generator</text>
+
+  <rect x="565" y="55" width="120" height="32" rx="4" fill="url(#api)"/>
+  <text x="625" y="76" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">EIA API</text>
+
+  <rect x="730" y="55" width="110" height="32" rx="4" fill="url(#disk)"/>
+  <text x="785" y="76" text-anchor="middle" fill="#a7f3d0" font-size="10" font-weight="bold">Disk</text>
+
+  <!-- vertical lifelines -->
+  <line x1="75"  y1="87" x2="75"  y2="540" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="240" y1="87" x2="240" y2="540" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="432" y1="87" x2="432" y2="540" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="625" y1="87" x2="625" y2="540" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="785" y1="87" x2="785" y2="540" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ── step 1: HTTP request ── -->
+  <line x1="75" y1="115" x2="232" y2="115" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <text x="155" y="108" text-anchor="middle" fill="#60a5fa" font-size="9">GET /export_route…?resume=true</text>
+
+  <!-- ── step 2: create generator ── -->
+  <line x1="240" y1="145" x2="345" y2="145" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="292" y="138" text-anchor="middle" fill="#475569" font-size="9">StreamingResponse(gen)</text>
+
+  <!-- ── step 3: init state + resume ── -->
+  <rect x="352" y="160" width="160" height="50" rx="4" fill="#2e1065" stroke="#4c1d95" stroke-width="1"/>
+  <text x="432" y="178" text-anchor="middle" fill="#c4b5fd" font-size="9" font-weight="bold">init state</text>
+  <text x="432" y="193" text-anchor="middle" fill="#a78bfa" font-size="8">read_checkpoint()</text>
+  <text x="432" y="206" text-anchor="middle" fill="#a78bfa" font-size="8">scan disk rows → offset</text>
+
+  <!-- yield STATE -->
+  <line x1="352" y1="228" x2="83" y2="228" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-g)"/>
+  <text x="217" y="222" text-anchor="middle" fill="#34d399" font-size="8">yield "[STATE] …"</text>
+
+  <!-- ── loop ── -->
+  <rect x="348" y="245" width="168" height="18" rx="3" fill="#0d1424" stroke="#1e293b"/>
+  <text x="432" y="258" text-anchor="middle" fill="#64748b" font-size="9">─── pagination loop ───</text>
+
+  <!-- step 4: fetch page -->
+  <line x1="432" y1="275" x2="617" y2="275" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-y)"/>
+  <text x="530" y="267" text-anchor="middle" fill="#fbbf24" font-size="9">GET /data/?offset=N&amp;length=5000</text>
+
+  <!-- EIA response -->
+  <line x1="617" y1="300" x2="440" y2="300" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-y)"/>
+  <text x="530" y="293" text-anchor="middle" fill="#fbbf24" font-size="8">rows[]  total=45000</text>
+
+  <!-- yield FETCH -->
+  <line x1="352" y1="318" x2="83" y2="318" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-g)"/>
+  <text x="217" y="311" text-anchor="middle" fill="#34d399" font-size="8">yield "[FETCH] offset=5000 got=5000"</text>
+
+  <!-- buffer accumulate -->
+  <rect x="352" y="328" width="168" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+  <text x="432" y="345" text-anchor="middle" fill="#94a3b8" font-size="9">buffer_rows.extend(rows)</text>
+
+  <!-- decision: buffer full? -->
+  <polygon points="432,368 475,390 432,412 389,390" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="432" y="387" text-anchor="middle" fill="#94a3b8" font-size="8">buffer</text>
+  <text x="432" y="399" text-anchor="middle" fill="#94a3b8" font-size="8">≥ file_size?</text>
+
+  <!-- yes: write csv -->
+  <line x1="475" y1="390" x2="600" y2="390" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="537" y="382" text-anchor="middle" fill="#475569" font-size="8">yes</text>
+  <line x1="600" y1="390" x2="600" y2="420" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="600" y1="420" x2="777" y2="420" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <text x="690" y="413" text-anchor="middle" fill="#34d399" font-size="8">write_csv() → file000X.csv</text>
+  <line x1="777" y1="440" x2="600" y2="440" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-g)"/>
+  <text x="690" y="435" text-anchor="middle" fill="#34d399" font-size="8">write_checkpoint()</text>
+
+  <!-- yield WRITE -->
+  <line x1="352" y1="430" x2="83" y2="430" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-g)"/>
+  <text x="217" y="423" text-anchor="middle" fill="#34d399" font-size="8">yield "[WRITE] rows=10000"</text>
+
+  <!-- loop back arrow -->
+  <path d="M389,390 Q340,390 340,330 Q340,275 352,275" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <text x="322" y="336" text-anchor="middle" fill="#475569" font-size="8">no /</text>
+  <text x="322" y="348" text-anchor="middle" fill="#475569" font-size="8">next</text>
+  <text x="322" y="360" text-anchor="middle" fill="#475569" font-size="8">page</text>
+
+  <!-- done -->
+  <line x1="432" y1="460" x2="432" y2="490" stroke="#475569" stroke-width="1.5"/>
+  <rect x="352" y="490" width="160" height="36" rx="4" fill="url(#disk)"/>
+  <text x="432" y="508" text-anchor="middle" fill="#a7f3d0" font-size="9" font-weight="bold">flush LAST.csv</text>
+  <text x="432" y="522" text-anchor="middle" fill="#6ee7b7" font-size="8">checkpoint {finished: true}</text>
+
+  <line x1="352" y1="508" x2="83" y2="508" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-g)"/>
+  <text x="217" y="501" text-anchor="middle" fill="#34d399" font-size="8">yield "[DONE] total_written=45000"</text>
+</svg>

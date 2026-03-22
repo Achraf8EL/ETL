@@ -1,4 +1,3 @@
-
 import json
 from datetime import datetime
 
@@ -23,7 +22,7 @@ load_dotenv()
 
 EIA_API_KEY = os.getenv("EIA_API_KEY")
 if not EIA_API_KEY:
-    raise RuntimeError("EIA_API_KEY manquante. Ajoutez-la dans un fichier .env (EIA_API_KEY=...)")
+    raise RuntimeError("EIA_API_KEY is missing. Add it to a .env file (EIA_API_KEY=...)")
 
 EIA_BASE = "https://api.eia.gov/v2"
 
@@ -36,7 +35,7 @@ _METADATA_CACHE: Dict[str, dict] = {}
 _CHILDREN_MAP_CACHE: Dict[str, Dict[str, str]] = {}
 
 """
-    Normalise les noms des fichiers et limite leur nombre de caractères à 180.
+    Sanitizes file names and caps them at 180 characters.
 """
 def safe_filename(s: str) -> str:
     s = str(s).replace("/", "_")
@@ -44,7 +43,7 @@ def safe_filename(s: str) -> str:
     return s[:180]
 
 """
-    Normalise les noms de dossiers et les limite à 140 caractères.
+    Sanitizes folder names and caps them at 140 characters.
 """
 def slugify_folder(s: str) -> str:
     s = (s or "").strip()
@@ -54,7 +53,7 @@ def slugify_folder(s: str) -> str:
     return s[:140] if s else "UNKNOWN"
 
 """
-    Permet de forcément renvoyer une valeur valide ou nulle afin de faciliter les traitements en aval.
+    Always returns a valid integer or None, so downstream processing never has to deal with conversion errors.
 """
 def parse_int(x) -> Optional[int]:
     try:
@@ -63,13 +62,13 @@ def parse_int(x) -> Optional[int]:
         return None
 
 """
-    Retourne l'heure actuelle au format ISO.
+    Returns the current UTC time as an ISO-formatted string.
 """
 def now_iso() -> str:
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
 """
-    Convertit une liste de dictionnaires en bytes au format CSV.
+    Converts a list of dictionaries into UTF-8 encoded CSV bytes.
 """
 def to_csv_bytes(rows: List[Dict]) -> bytes:
     df = pd.DataFrame(rows)
@@ -78,7 +77,7 @@ def to_csv_bytes(rows: List[Dict]) -> bytes:
     return buff.getvalue().encode("utf-8")
 
 """
-    Génère un fichier CSV à l'endroit voulu
+    Writes a CSV file at the given path and returns the number of rows written.
 """
 def write_csv(path: Path, rows: List[Dict]) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,8 +85,8 @@ def write_csv(path: Path, rows: List[Dict]) -> int:
     return len(rows)
 
 """
-    Compte rapidement les lignes d'un CSV (sans charger en mémoire).
-    On retire 1 pour l'en-tête.
+    Counts lines in a CSV file efficiently without loading it into memory.
+    Subtracts 1 to exclude the header row.
 """
 def count_csv_rows_fast(path: Path) -> int:
     n = 0
@@ -97,7 +96,7 @@ def count_csv_rows_fast(path: Path) -> int:
     return max(0, n - 1)
 
 """
-    Transforme n'importe quelle chaîne de caractères en liste de chaînes de caractères.
+    Splits a comma-separated string into a clean list of strings, handling None and empty inputs safely.
 """
 def parse_csv_list(s: Optional[str]) -> List[str]:
     if not s:
@@ -105,13 +104,13 @@ def parse_csv_list(s: Optional[str]) -> List[str]:
     return [x.strip() for x in s.split(",") if x.strip()]
 
 """
-    Génère le chemin du checkpoint pour un export donné.
+    Returns the checkpoint file path for a given export directory.
 """
 def checkpoint_path(out_dir: Path) -> Path:
     return out_dir / "_checkpoint.json"
 
 """
-    Génère  checkpoint d'un export afin d'obtenir ses informations
+    Persists the current export state to a checkpoint file using an atomic .tmp write to prevent corruption.
 """
 def write_checkpoint(out_dir: Path, payload: dict) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -121,7 +120,7 @@ def write_checkpoint(out_dir: Path, payload: dict) -> None:
     tmp.replace(p)
 
 """
-    Lit les informations d'un export
+    Reads and returns the checkpoint data for a given export, or None if it does not exist.
 """
 def read_checkpoint(out_dir: Path) -> Optional[dict]:
     p = checkpoint_path(out_dir)
@@ -133,14 +132,14 @@ def read_checkpoint(out_dir: Path) -> Optional[dict]:
         return None
 
 """
-    Normalise les noms de fichiers avec la fréquence
+    Builds the file name prefix for a given route and frequency, used consistently across all chunk files.
 """
 def _prefix_for(route: str, frequency: str) -> str:
     return f"{safe_filename(route.replace('/','_'))}_{frequency}"
 
 """
-    Retourne les fichiers prefix_fileXXXX.csv triés par index.
-    Ignore LAST.
+    Returns all numbered chunk files (prefix_fileXXXX.csv) sorted by index.
+    Ignores the LAST file.
 """
 def _list_chunk_files(out_dir: Path, prefix: str) -> List[Path]:
     pat = re.compile(rf"^{re.escape(prefix)}_file(\d{{4}})\.csv$")
@@ -153,7 +152,7 @@ def _list_chunk_files(out_dir: Path, prefix: str) -> List[Path]:
     return [p for _, p in sorted(files, key=lambda x: x[0])]
 
 """
-    Retourne l'index du prochain fichier à créer sur disque.
+    Returns the index to use for the next chunk file to be created on disk.
 """
 def _next_file_index_from_disk(out_dir: Path, prefix: str) -> int:
     files = _list_chunk_files(out_dir, prefix)
@@ -164,8 +163,8 @@ def _next_file_index_from_disk(out_dir: Path, prefix: str) -> int:
     return int(m.group(1)) + 1 if m else 1
 
 """
-    Compte le nombre total de lignes (sans headers) déjà écrites sur disque
-    (fichiers chunk + éventuellement LAST).
+    Counts the total number of data rows already written to disk
+    across all chunk files and the optional LAST file.
 """
 def _rows_written_from_disk(out_dir: Path, prefix: str) -> int:
     total = 0
@@ -177,7 +176,7 @@ def _rows_written_from_disk(out_dir: Path, prefix: str) -> int:
     return total
 
 """
-    Etat détaillé de où on en est.
+    Returns a detailed snapshot of the current export state by combining disk scan results and checkpoint data.
 """
 def export_status(out_dir: Path, prefix: str, file_size: int) -> dict:
     ck = read_checkpoint(out_dir)
@@ -204,7 +203,7 @@ def export_status(out_dir: Path, prefix: str, file_size: int) -> dict:
     }
 
 """
-    Wrapper HTTP permettant de sécuriser les appels à l'API EIA.
+    HTTP wrapper that makes EIA API calls resilient with exponential backoff retry logic.
 """
 def _safe_get_json(url: str, params, timeout: int = 60, retries: int = 8) -> dict:
     headers = {
@@ -270,7 +269,9 @@ def _safe_get_json(url: str, params, timeout: int = 60, retries: int = 8) -> dic
 
     raise HTTPException(status_code=502, detail={"message": "EIA request failed", "status": last_status, "body": last_text})
 
-
+"""
+    Main entry point for querying the EIA API — prevents redundant calls through an in-memory cache.
+"""
 def get_metadata(path: str) -> dict:
     path = path.strip("/")
     if path in _METADATA_CACHE:
@@ -280,10 +281,16 @@ def get_metadata(path: str) -> dict:
     _METADATA_CACHE[path] = md
     return md
 
+"""
+    Extracts the available child routes from an endpoint's metadata.
+"""
 def get_routes(md: dict) -> List[Dict]:
     resp = md.get("response", {}) or {}
     return resp.get("routes", []) or []
 
+"""
+    Extracts the available frequencies from a route's metadata so they can be used to filter data.
+"""
 def get_freqs(md: dict) -> List[str]:
     resp = md.get("response", {}) or {}
     freqs = resp.get("frequency", []) or []
@@ -293,6 +300,9 @@ def get_freqs(md: dict) -> List[str]:
             out.append(f["id"])
     return out
 
+"""
+    Returns the available data columns for a route from its metadata.
+"""
 def get_data_fields(md: dict) -> List[str]:
     resp = md.get("response", {}) or {}
     data = resp.get("data", {}) or {}
@@ -300,6 +310,9 @@ def get_data_fields(md: dict) -> List[str]:
         return list(data.keys())
     return []
 
+"""
+    Extracts the available facets from a route's metadata so they can be used as query filters.
+"""
 def get_facets(md: dict) -> List[str]:
     resp = md.get("response", {}) or {}
     facets = resp.get("facets", []) or []
@@ -309,6 +322,9 @@ def get_facets(md: dict) -> List[str]:
             out.append(f["id"])
     return out
 
+"""
+    Determines whether a route leads to actual data (i.e. is a leaf node): it must have frequencies and data fields but no children.
+"""
 def is_leaf(md: dict) -> bool:
     resp = md.get("response", {}) or {}
     has_freq = isinstance(resp.get("frequency"), list) and len(resp.get("frequency")) > 0
@@ -316,6 +332,9 @@ def is_leaf(md: dict) -> bool:
     has_children = len(resp.get("routes", []) or []) > 0
     return has_freq and has_data and (not has_children)
 
+"""
+    Traverses the route tree from a given root and returns all leaf routes that expose usable data.
+"""
 def discover_leaf_routes(root: str, max_depth: int = 8) -> List[str]:
     root = root.strip("/")
     stack: List[Tuple[str, int]] = [(root, 0)]
@@ -346,6 +365,9 @@ def discover_leaf_routes(root: str, max_depth: int = 8) -> List[str]:
 
     return sorted(set(leafs))
 
+"""
+    Builds a {child_id: child_name} map to generate human-readable folder names during export.
+"""
 def get_children_map(parent_route: str) -> Dict[str, str]:
     parent_route = parent_route.strip("/")
     if parent_route in _CHILDREN_MAP_CACHE:
@@ -361,6 +383,9 @@ def get_children_map(parent_route: str) -> Dict[str, str]:
     _CHILDREN_MAP_CACHE[parent_route] = out
     return out
 
+"""
+    Prepends a numeric index to petroleum leaf route folders to ensure a consistent and readable sort order on disk.
+"""
 def numbered_leaf_dir(route: str) -> Path:
     """
     route ex: petroleum/sum/mkt
@@ -379,10 +404,13 @@ def numbered_leaf_dir(route: str) -> Path:
 
     return EXPORT_BASE_DIR / parent / f"{num}__{slugify_folder(leaf_name)}"
 
+"""
+    Returns the export directory for a given route where downloaded files will be saved.
+"""
 def route_to_dir(route: str) -> Path:
     """
-    applique 01__Nom_Complet pour les leaf routes petroleum/*/<leaf> (3 segments)
-    sinon fallback exports/<route>
+    Applies 01__Full_Name numbering for petroleum/*/<leaf> routes (3 segments),
+    otherwise falls back to exports/<route>
     """
     route = route.strip("/")
     parts = route.split("/")
@@ -390,6 +418,9 @@ def route_to_dir(route: str) -> Path:
         return numbered_leaf_dir(route)
     return EXPORT_BASE_DIR / route
 
+"""
+    Builds a {route: {name, description}} map for all leaf routes to provide human-readable export folder names.
+"""
 def build_names_map(root: str, max_depth: int = 8) -> dict:
     root = root.strip("/")
     names = {}
@@ -418,6 +449,10 @@ def build_names_map(root: str, max_depth: int = 8) -> dict:
 
     return names
 
+"""
+    Resolves the name and description of a route by preferring the names_map (richer data)
+    over raw metadata — ensures readable names even when the API returns minimal information.
+"""
 def pick_better_name(path: str, md: dict, names_map: dict) -> tuple:
     resp = md.get("response", {}) or {}
     if path in names_map:
@@ -427,6 +462,11 @@ def pick_better_name(path: str, md: dict, names_map: dict) -> tuple:
     return (resp.get("name"), resp.get("description"))
 
 
+"""
+    Core streaming export engine: paginates the EIA API, writes data in file_size-row chunks,
+    and yields log lines in real time for live monitoring via curl or SSE.
+    Supports resume from checkpoint or disk state to avoid duplicate rows.
+"""
 def _export_route_all_split10k_generator(
     route: str,
     frequency: str,
@@ -620,6 +660,10 @@ def _export_route_all_split10k_generator(
         })
         yield f"[ERROR] {type(e).__name__}: {e}\n"
         return
+"""
+    Queries the state of an ongoing or completed export for a given route — shows how many rows
+    have been written, which file was last produced, and whether a checkpoint exists.
+"""
 @app.get("/export_status")
 def export_status_endpoint(
     route: str = Query(..., description="Ex: petroleum/pri/allmg"),
@@ -631,6 +675,10 @@ def export_status_endpoint(
     prefix = _prefix_for(route, frequency)
     return JSONResponse(export_status(out_dir, prefix, file_size))
 
+"""
+    Downloads and saves all data for an EIA route into split CSV files without streaming
+    — suited for one-off exports where a final JSON summary is enough.
+"""
 def export_route_all_split10k(
     route: str,
     frequency: str,
@@ -643,7 +691,7 @@ def export_route_all_split10k(
     verify: bool = False,
 ) -> dict:
     """
-    Export qui retourne un JSON final (sans resume ici).
+    Export that returns a final JSON summary (no resume support here).
     """
     route = route.strip("/")
     out_dir = route_to_dir(route) / frequency / "ALL_NO_FILTER"
@@ -737,6 +785,10 @@ def export_route_all_split10k(
     }
 
 
+"""
+    Traverses the EIA tree from a given root and returns an enriched list of each leaf route
+    with its metadata (frequencies, facets, data fields, period) — the starting point for planning an export.
+"""
 @app.get("/tree_verbose")
 def tree_verbose(
     root: str = Query(..., description="Ex: petroleum/sum"),
@@ -767,6 +819,10 @@ def tree_verbose(
 
     return JSONResponse(out)
 
+"""
+    Generates ready-to-use curl commands for exporting all leaf routes under a root —
+    handy for launching bulk exports from a terminal or shell script.
+"""
 @app.get("/curl_commands")
 def curl_commands(
     root: str = Query(..., description="Ex: petroleum/sum"),
@@ -777,11 +833,11 @@ def curl_commands(
     file_size: int = Query(10000, ge=1000, le=200000),
     sleep_ms: int = Query(200, ge=0, le=2000),
     verify: bool = Query(True),
-    resume: bool = Query(False, description="Si true: ajoute &resume=1 dans les commandes curl"),
+    resume: bool = Query(False, description="If true: appends &resume=1 to the generated curl commands"),
 ):
     """
-    Génère des commandes curl (stream) pour chaque leaf route sous root,
-    uniquement pour les fréquences disponibles.
+    Generates streaming curl commands for each leaf route under root,
+    restricted to available frequencies.
     """
     wanted = set(parse_csv_list(frequencies))
 
@@ -811,10 +867,17 @@ def curl_commands(
     return JSONResponse({"root": root, "count": len(cmds), "commands": cmds})
 
 
+"""
+    Checks that the server is up and that the export directory is properly configured.
+"""
 @app.get("/health")
 def health():
     return {"status": "ok", "exports_dir": str(EXPORT_BASE_DIR.resolve())}
 
+"""
+    Queries the state of an ongoing or completed export for a given route — shows how many rows
+    have been written, which file was last produced, and whether a checkpoint exists.
+"""
 @app.get("/export_status")
 def export_status_endpoint(
     route: str = Query(..., description="Ex: petroleum/sum/snd"),
@@ -826,6 +889,10 @@ def export_status_endpoint(
     prefix = _prefix_for(route, frequency)
     return JSONResponse(export_status(out_dir, prefix, file_size))
 
+"""
+    Triggers a full synchronous export of an EIA route — blocks until completion and returns
+    a JSON summary (row count, files created, optional verification).
+"""
 @app.get("/export_route_all_split10k")
 def export_route_all_split10k_endpoint(
     route: str = Query(..., description="Ex: petroleum/sum/mkt"),
@@ -834,9 +901,9 @@ def export_route_all_split10k_endpoint(
     api_page_size: int = Query(5000, ge=1, le=5000),
     file_size: int = Query(10000, ge=1000, le=200000),
     sleep_ms: int = Query(400, ge=0, le=2000),
-    start: Optional[str] = Query(None, description="Optionnel. Ex: 2020-01 (monthly) ou 2018 (annual)"),
-    end: Optional[str] = Query(None, description="Optionnel. Ex: 2020-12 (monthly) ou 2023 (annual)"),
-    verify: bool = Query(False, description="Recompte les lignes des CSV et vérifie total_expected"),
+    start: Optional[str] = Query(None, description="Optional. Ex: 2020-01 (monthly) or 2018 (annual)"),
+    end: Optional[str] = Query(None, description="Optional. Ex: 2020-12 (monthly) or 2023 (annual)"),
+    verify: bool = Query(False, description="Recounts CSV rows and checks against total_expected"),
 ):
     return export_route_all_split10k(
         route=route,
@@ -850,6 +917,11 @@ def export_route_all_split10k_endpoint(
         verify=verify,
     )
 
+"""
+    Streaming version of the export: sends logs in real time line by line during the download.
+    Supports automatic resume (resume=true) and starting from a specific offset (start_offset)
+    — ideal for long exports monitored via curl.
+"""
 @app.get("/export_route_all_split10k_stream")
 def export_route_all_split10k_stream(
     route: str = Query(..., description="Ex: petroleum/sum/mkt"),
@@ -861,8 +933,8 @@ def export_route_all_split10k_stream(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     verify: bool = Query(False),
-    start_offset: int = Query(0, ge=0, description="Reprendre à partir d'un offset précis (si resume=false)"),
-    resume: bool = Query(False, description="Si true: lit _checkpoint.json + scan disque et reprend automatiquement"),
+    start_offset: int = Query(0, ge=0, description="Resume from a specific offset (only when resume=false)"),
+    resume: bool = Query(False, description="If true: reads _checkpoint.json + scans disk and resumes automatically"),
 ):
     gen = _export_route_all_split10k_generator(
         route=route,
