@@ -1,0 +1,128 @@
+<svg viewBox="0 0 860 420" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1117"/>
+      <stop offset="100%" stop-color="#161b27"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#fbbf24"/>
+    </marker>
+  </defs>
+
+  <!-- background -->
+  <rect width="860" height="420" fill="url(#bg)" rx="12"/>
+  <rect width="860" height="420" fill="none" stroke="#1e293b" stroke-width="1" rx="12"/>
+
+  <!-- title -->
+  <text x="430" y="38" text-anchor="middle" fill="#94a3b8" font-size="13" letter-spacing="3" font-family="'Courier New', monospace">CHECKPOINT LIFECYCLE</text>
+
+  <!-- ── WRITE FLOW (top row) ── -->
+
+  <!-- Box: Export running -->
+  <rect x="30" y="70" width="150" height="52" rx="6" fill="url(#blue)" opacity="0.9"/>
+  <text x="105" y="91" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="bold">Export running</text>
+  <text x="105" y="108" text-anchor="middle" fill="#93c5fd" font-size="10">_generator()</text>
+
+  <!-- arrow -->
+  <line x1="180" y1="96" x2="228" y2="96" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="204" y="88" text-anchor="middle" fill="#475569" font-size="9">chunk ready</text>
+
+  <!-- Box: write .tmp -->
+  <rect x="230" y="70" width="150" height="52" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="305" y="91" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">write .tmp file</text>
+  <text x="305" y="108" text-anchor="middle" fill="#64748b" font-size="10">_checkpoint.tmp</text>
+
+  <!-- arrow -->
+  <line x1="380" y1="96" x2="428" y2="96" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="404" y="88" text-anchor="middle" fill="#475569" font-size="9">atomic rename</text>
+
+  <!-- Box: checkpoint.json -->
+  <rect x="430" y="70" width="165" height="52" rx="6" fill="url(#green)" opacity="0.9"/>
+  <text x="512" y="91" text-anchor="middle" fill="#a7f3d0" font-size="11" font-weight="bold">_checkpoint.json</text>
+  <text x="512" y="108" text-anchor="middle" fill="#6ee7b7" font-size="10">offset · file_index · written</text>
+
+  <!-- crash label on tmp -->
+  <rect x="230" y="136" width="150" height="36" rx="4" fill="#450a0a" stroke="#7f1d1d" stroke-width="1"/>
+  <text x="305" y="151" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="bold">⚡ process killed</text>
+  <text x="305" y="164" text-anchor="middle" fill="#f87171" font-size="9">→ .json untouched</text>
+  <line x1="305" y1="122" x2="305" y2="136" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- ── READ / RESUME FLOW (bottom row) ── -->
+  <text x="30" y="225" fill="#475569" font-size="10" letter-spacing="2">─────────────────────  RESUME  ─────────────────────────────────────────────</text>
+
+  <!-- Box: new run -->
+  <rect x="30" y="245" width="150" height="52" rx="6" fill="url(#blue)" opacity="0.9"/>
+  <text x="105" y="266" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="bold">New run starts</text>
+  <text x="105" y="283" text-anchor="middle" fill="#93c5fd" font-size="10">resume=True</text>
+
+  <!-- arrow -->
+  <line x1="180" y1="271" x2="228" y2="271" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box: read checkpoint -->
+  <rect x="230" y="245" width="150" height="52" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="305" y="262" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">read_checkpoint()</text>
+  <text x="305" y="279" text-anchor="middle" fill="#64748b" font-size="10">parse JSON</text>
+  <text x="305" y="292" text-anchor="middle" fill="#64748b" font-size="10">+ scan disk rows</text>
+
+  <!-- arrow to merge -->
+  <line x1="380" y1="271" x2="428" y2="271" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box: merge -->
+  <rect x="430" y="245" width="165" height="52" rx="6" fill="url(#amber)" opacity="0.9"/>
+  <text x="512" y="264" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="bold">merge state</text>
+  <text x="512" y="281" text-anchor="middle" fill="#fde68a" font-size="10">offset = max(ck, disk)</text>
+  <text x="512" y="294" text-anchor="middle" fill="#fde68a" font-size="10">file_index = max(ck, disk)</text>
+
+  <!-- arrow to resume -->
+  <line x1="595" y1="271" x2="643" y2="271" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- Box: resume export -->
+  <rect x="645" y="245" width="165" height="52" rx="6" fill="url(#green)" opacity="0.9"/>
+  <text x="727" y="264" text-anchor="middle" fill="#a7f3d0" font-size="11" font-weight="bold">resume export</text>
+  <text x="727" y="281" text-anchor="middle" fill="#6ee7b7" font-size="10">no duplicate rows</text>
+  <text x="727" y="294" text-anchor="middle" fill="#6ee7b7" font-size="10">no data loss</text>
+
+  <!-- no checkpoint path -->
+  <rect x="230" y="318" width="150" height="36" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="305" y="333" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">no checkpoint?</text>
+  <text x="305" y="347" text-anchor="middle" fill="#64748b" font-size="9">→ disk scan only</text>
+  <line x1="305" y1="297" x2="305" y2="318" stroke="#64748b" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="380" y1="336" x2="512" y2="297" stroke="#64748b" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+
+  <!-- checkpoint.json connects down to read -->
+  <line x1="512" y1="122" x2="512" y2="200" stroke="#34d399" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="512" y1="200" x2="305" y2="245" stroke="#34d399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+
+  <!-- legend -->
+  <rect x="30" y="375" width="800" height="32" rx="4" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <rect x="45" y="386" width="10" height="10" rx="2" fill="#1d4ed8"/>
+  <text x="60" y="395" fill="#64748b" font-size="10">process</text>
+  <rect x="130" y="386" width="10" height="10" rx="2" fill="#047857"/>
+  <text x="145" y="395" fill="#64748b" font-size="10">safe state</text>
+  <rect x="215" y="386" width="10" height="10" rx="2" fill="#b45309"/>
+  <text x="230" y="395" fill="#64748b" font-size="10">merge</text>
+  <rect x="290" y="386" width="10" height="10" rx="2" fill="#7f1d1d"/>
+  <text x="305" y="395" fill="#64748b" font-size="10">crash-safe (atomic rename)</text>
+</svg>

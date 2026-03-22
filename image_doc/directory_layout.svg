@@ -1,0 +1,101 @@
+<svg viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1117"/>
+      <stop offset="100%" stop-color="#161b27"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="860" height="440" fill="url(#bg)" rx="12"/>
+  <rect width="860" height="440" fill="none" stroke="#1e293b" stroke-width="1" rx="12"/>
+
+  <text x="430" y="36" text-anchor="middle" fill="#94a3b8" font-size="13" letter-spacing="3">EXPORT DIRECTORY LAYOUT</text>
+
+  <!-- ══ LEFT: route → dir mapping ══ -->
+
+  <!-- Route input box -->
+  <rect x="30" y="65" width="220" height="50" rx="6" fill="url(#blue)"/>
+  <text x="140" y="85" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="bold">route_to_dir(route)</text>
+  <text x="140" y="103" text-anchor="middle" fill="#93c5fd" font-size="10">route = "petroleum/sum/mkt"</text>
+
+  <!-- decision diamond -->
+  <polygon points="140,135 195,165 140,195 85,165" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="140" y="161" text-anchor="middle" fill="#94a3b8" font-size="9">petroleum</text>
+  <text x="140" y="174" text-anchor="middle" fill="#94a3b8" font-size="9">+ 3 segments?</text>
+  <line x1="140" y1="115" x2="140" y2="135" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- yes path -->
+  <line x1="195" y1="165" x2="255" y2="165" stroke="#34d399" stroke-width="1.5"/>
+  <text x="224" y="158" text-anchor="middle" fill="#34d399" font-size="9">yes</text>
+  <rect x="255" y="145" width="140" height="40" rx="5" fill="url(#amber)"/>
+  <text x="325" y="163" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">numbered_leaf_dir()</text>
+  <text x="325" y="178" text-anchor="middle" fill="#fde68a" font-size="9">03__Full_Name/</text>
+
+  <!-- no path -->
+  <line x1="140" y1="195" x2="140" y2="235" stroke="#f87171" stroke-width="1.5"/>
+  <text x="152" y="218" fill="#f87171" font-size="9">no</text>
+  <rect x="75" y="235" width="130" height="40" rx="5" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="140" y="253" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">exports/&lt;route&gt;</text>
+  <text x="140" y="268" text-anchor="middle" fill="#64748b" font-size="9">simple fallback</text>
+
+  <!-- numbering explanation -->
+  <rect x="30" y="300" width="360" height="110" rx="6" fill="#0d1424" stroke="#1e293b" stroke-width="1"/>
+  <text x="210" y="320" text-anchor="middle" fill="#64748b" font-size="10" letter-spacing="2">NUMBERING LOGIC</text>
+  <text x="45" y="340" fill="#475569" font-size="10">siblings = sorted(child_map.keys())</text>
+  <text x="45" y="357" fill="#475569" font-size="10">           → ["mkt", "pri", "snd", ...]</text>
+  <text x="45" y="374" fill="#fbbf24" font-size="10">idx = siblings.index("mkt") + 1  →  3</text>
+  <text x="45" y="391" fill="#fbbf24" font-size="10">num = f"{idx:02d}"               →  "03"</text>
+  <text x="45" y="408" fill="#34d399" font-size="10">dir = "03__Prices_Sales_Volumes_Stocks_by_State"</text>
+
+  <!-- ══ RIGHT: full tree on disk ══ -->
+  <rect x="430" y="58" width="400" height="360" rx="8" fill="#0d1424" stroke="#1e293b" stroke-width="1"/>
+  <text x="630" y="78" text-anchor="middle" fill="#64748b" font-size="10" letter-spacing="2">DISK STRUCTURE</text>
+
+  <!-- tree lines -->
+  <text x="448" y="102" fill="#475569" font-size="11">exports/</text>
+  <text x="448" y="122" fill="#475569" font-size="11">└── petroleum/</text>
+  <text x="448" y="142" fill="#475569" font-size="11">    └── sum/</text>
+
+  <!-- numbered folders -->
+  <rect x="465" y="151" width="350" height="22" rx="3" fill="#1c1917" stroke="#292524" stroke-width="1"/>
+  <text x="474" y="166" fill="#fbbf24" font-size="11">        ├── 01__Crude_Oil_Production/</text>
+
+  <rect x="465" y="175" width="350" height="22" rx="3" fill="#1c1917" stroke="#292524" stroke-width="1"/>
+  <text x="474" y="190" fill="#fbbf24" font-size="11">        ├── 02__Imports_Exports/</text>
+
+  <rect x="465" y="199" width="350" height="22" rx="3" fill="#14532d" stroke="#166534" stroke-width="1"/>
+  <text x="474" y="214" fill="#34d399" font-size="11">        ├── 03__Prices_Sales_Volumes/ ◄</text>
+
+  <rect x="465" y="223" width="350" height="22" rx="3" fill="#1c1917" stroke="#292524" stroke-width="1"/>
+  <text x="474" y="238" fill="#fbbf24" font-size="11">        └── 04__Refinery_Operations/</text>
+
+  <!-- expanded selected folder -->
+  <text x="448" y="262" fill="#64748b" font-size="11">            └── monthly/</text>
+  <text x="448" y="280" fill="#64748b" font-size="11">                └── ALL_NO_FILTER/</text>
+
+  <rect x="465" y="288" width="350" height="18" rx="3" fill="#1e293b"/>
+  <text x="474" y="301" fill="#94a3b8" font-size="10">                    ├── _checkpoint.json</text>
+
+  <rect x="465" y="308" width="350" height="18" rx="3" fill="#1e293b"/>
+  <text x="474" y="321" fill="#93c5fd" font-size="10">                    ├── prefix_file0001.csv</text>
+
+  <rect x="465" y="328" width="350" height="18" rx="3" fill="#1e293b"/>
+  <text x="474" y="341" fill="#93c5fd" font-size="10">                    ├── prefix_file0002.csv</text>
+
+  <rect x="465" y="348" width="350" height="18" rx="3" fill="#1e293b"/>
+  <text x="474" y="361" fill="#7dd3fc" font-size="10">                    └── prefix_LAST.csv</text>
+
+  <text x="630" y="400" text-anchor="middle" fill="#475569" font-size="9">consistent alphabetical order · human-readable names</text>
+</svg>
